@@ -1,0 +1,102 @@
+{
+  "connections": [
+    {
+      "name": "nexus-conn-slack"
+    },
+    {
+      "name": "nexus-conn-jira"
+    },
+    {
+      "name": "nexus-conn-opslevel"
+    },
+    {
+      "name": "nexus-conn-confluence"
+    },
+    {
+      "name": "nexus-conn-sendgrid"
+    }
+  ],
+  "modules": {
+    "nexus-opslevel": {
+      "config": {
+        "CONFLUENCE_HOST": "",
+        "CONFLUENCE_USERNAME": "",
+        "CONFLUENCE_API_KEY": "",
+        "OPSLEVEL_TOKEN": "",
+        "OPSLEVEL_GQL_ENDPOINT": "",
+        "SENDGRID_API_KEY": ""
+      },
+      "jobs": [
+        {
+          "type": "",
+          "schedule": "",
+          "options": {
+            "CONF_SERVICE_LIST_PAGE_ID": ""
+          }
+        }
+      ]
+    },
+    "nexus-service": {
+      "config": {
+        "REQUEST_COMMAND_NAME": "",
+        "REQUEST_JIRA_PROJECT": "",
+        "REQUEST_JIRA_ISSUE_TYPE_ID": "",
+        "REQUEST_JIRA_EPIC": "",
+        "REQUEST_JIRA_START_TRANSITION_ID": 21,
+        "REQUEST_JIRA_COMPLETE_TRANSITION_ID": 31,
+        "REQUEST_JIRA_EPIC_LINK_FIELD": "",
+        "REQUEST_JIRA_RESOLUTION_DISMISS": "",
+        "REQUEST_JIRA_RESOLUTION_DONE": "",
+        "SLACK_BOT_ID": "",
+        "SLACK_APP_ID": "",
+        "SLACK_CLIENT_ID": "",
+        "SLACK_CLIENT_SECRET": "",
+        "SLACK_SIGNING_SECRET": "",
+        "SLACK_CLIENT_OAUTH_TOKEN": "",
+        "SLACK_USER_OAUTH_TOKEN": "",
+        "JIRA_HOST": "",
+        "JIRA_USERNAME": "",
+        "JIRA_API_KEY": ""
+      }
+    },
+    "nexus-liveness": {
+    },
+    "nexus-dox": {
+      "config": {
+        "SLACK_APP_ID": "",
+        "SLACK_CLIENT_ID": "",
+        "SLACK_CLIENT_SECRET": "",
+        "SLACK_SIGNING_SECRET": "",
+        "CONFLUENCE_HOST": "",
+        "CONFLUENCE_USERNAME": "",
+        "CONFLUENCE_API_KEY": "",
+        "SENDGRID_API_KEY": ""
+      },
+      "jobs": [
+        {
+          "type": "",
+          "schedule": "",
+          "options": {
+            "PARENT_PAGE_ID": "",
+            "STALE_THRESHOLD": 60,
+            "EMAIL_FROM_ADDRESS": "",
+            "EMAIL_SEND_ADMIN": true,
+            "EMAIL_SEND_OWNER": false,
+            "EMAIL_ADMIN_NAME": "",
+            "EMAIL_ADMIN_EMAIL": ""
+          }
+        },
+        {
+          "type": "",
+          "schedule": "",
+          "options": {
+            "SLACK_PARENT_PAGE_ID": "",
+            "SLACK_POSTING_CRON": "",
+            "SLACK_POSTING_URL": "",
+            "ADMIN_EMAIL": ""
+          }
+        }
+      ]
+    }
+  }
+}
