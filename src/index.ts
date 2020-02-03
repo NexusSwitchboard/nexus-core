@@ -14,9 +14,17 @@ import getModuleManager from "./lib/modules";
 
 export const mainLogger = createDebug("nexus:server");
 
-// loads .env files into process env
 config();
 
+/**
+ * If you already have an Express app created and want to simply
+ * add Nexus functionality, use this function and pass in the created 
+ * Express app.  Note that you should NOT create any body parsers at 
+ * the app level as it might cause problems with some modules which expect 
+ * to have access to the raw body.
+ * 
+ * @param app The application to add Nexus to
+ */
 export const addNexusToExpressApp = (app: Application) => {
     // Load the nexus config file
     const pathToNexusConfig = "./.nexus";
@@ -55,104 +63,22 @@ export const addNexusToExpressApp = (app: Application) => {
     }
 };
 
-export const startNexusServer = () => {
+/**
+ * Instatiates and starts a server to listen for Nexus traffic
+ * based on configuration options made available in the .nexus file
+ * 
+ * @param port The port to listen for traffic on
+ */
+export const startNexusServer = (port: string) => {
 
     const app = express();
 
-    /**
-     * Get port from environment and store in Express.
-     */
-    const port = normalizePort(process.env.PORT || "3001");
     app.set("port", port);
-
-    /**
-     * Create HTTP server.
-     */
-
     const server = http.createServer(app);
-
-    /**
-     * Listen on provided port, on all network interfaces.
-     */
-
     server.listen(port);
-    server.on("error", onError);
-    server.on("listening", onListening);
+    app.use(logger("nexus:express"));
 
-    /**
-     * Normalize a port into a number, string, or false.
-     */
-
-    function normalizePort(val: any) {
-        const p = parseInt(val, 10);
-
-        if (isNaN(p)) {
-            // named pipe
-            return val;
-        }
-
-        if (p >= 0) {
-            // port number
-            return p;
-        }
-
-        return false;
-    }
-
-    /**
-     * Event listener for HTTP server "error" event.
-     */
-
-    function onError(error: any) {
-        if (error.syscall !== "listen") {
-            throw error;
-        }
-
-        const bind = typeof port === "string"
-            ? "Pipe " + port
-            : "Port " + port;
-
-        // handle specific listen errors with friendly messages
-        switch (error.code) {
-            case "EACCES":
-                mainLogger(bind + " requires elevated privileges");
-                process.exit(1);
-                break;
-            case "EADDRINUSE":
-                mainLogger(bind + " is already in use");
-                process.exit(1);
-                break;
-            default:
-                throw error;
-        }
-    }
-
-    /**
-     * Event listener for HTTP server "listening" event.
-     */
-
-    function onListening() {
-        const addr = server.address();
-        const bind = typeof addr === "string"
-            ? "pipe " + addr
-            : "port " + addr.port;
-        mainLogger("Listening on " + bind);
-    }
-
-    app.use(logger("dev"));
-
-    ///////////// GLOBAL MIDDLEWARE
-    //// BODY PARSERS
-    app.use(express.json());
-    app.use(express.urlencoded({extended: false}));
-
-    //// OTHER PARSERS
-    app.use(cookieParser());
-    app.use(express.static(path.join(__dirname, "public")));
-
-    //////////////  SETUP FOUNDATION API
-    protectRoute(app, "/api", "admin");
-    app.use("/api", apiRouter);
+    addNexusToExpressApp(app);
 
     return app;
 };
