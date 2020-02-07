@@ -1,0 +1,26 @@
+{
+  "connections": [
+    {
+      "path": "../tests/",
+      "name": "testConnection"
+    }
+  ],
+  "modules": {
+    "testModule": {
+      "path": "../tests/",
+      "config": {
+        "modConfig1": "modConfig1-Override",
+        "modConfig2": "modConfig2-Override"
+      },
+      "jobs": [
+        {
+          "type": "testJob",
+          "schedule": "",
+          "options": {
+            "jobConfig1": "jobConfig1"
+          }
+        }
+      ]
+    }
+  }
+}
