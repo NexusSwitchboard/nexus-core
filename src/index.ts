@@ -18,16 +18,18 @@ config();
 
 /**
  * If you already have an Express app created and want to simply
- * add Nexus functionality, use this function and pass in the created 
- * Express app.  Note that you should NOT create any body parsers at 
- * the app level as it might cause problems with some modules which expect 
+ * add Nexus functionality, use this function and pass in the created
+ * Express app.  Note that you should NOT create any body parsers at
+ * the app level as it might cause problems with some modules which expect
  * to have access to the raw body.
- * 
+ *
  * @param app The application to add Nexus to
+ * @param configPath (optional) The path to the nexus config file.  If not given, it will look in the current working
+ *          directory for a file called .nexus.
  */
-export const addNexusToExpressApp = (app: Application) => {
+export const addNexusToExpressApp = (app: Application, configPath: string = undefined) => {
     // Load the nexus config file
-    const pathToNexusConfig = "./.nexus";
+    const pathToNexusConfig = configPath || "./.nexus";
     if (fs.existsSync(pathToNexusConfig)) {
 
         try {
@@ -68,8 +70,10 @@ export const addNexusToExpressApp = (app: Application) => {
  * based on configuration options made available in the .nexus file
  * 
  * @param port The port to listen for traffic on
+ * @param configPath (optional) The path to the nexus config file.  If not given, it will look in the current working
+ *          directory for a file called .nexus.
  */
-export const startNexusServer = (port: string) => {
+export const startNexusServer = (port: string, configPath: string = undefined) => {
 
     const app = express();
 
@@ -78,7 +82,7 @@ export const startNexusServer = (port: string) => {
     server.listen(port);
     app.use(logger("nexus:express"));
 
-    addNexusToExpressApp(app);
+    addNexusToExpressApp(app, configPath);
 
     return app;
 };
