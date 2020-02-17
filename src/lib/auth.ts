@@ -1,6 +1,7 @@
 import jwt from "express-jwt";
 import {IRouter, Request, Response, NextFunction} from "express";
 import jwks from "jwks-rsa";
+import { NexusModuleConfig } from "@nexus-switchboard/nexus-extend";
 
 /**
  * This  adds the "user" field to the Request object so the linter will not complain about an unknown prop.
@@ -11,18 +12,6 @@ declare module "express" {
         user: Record<string, any>;
     }
 }
-
-const jwtCheck = jwt({
-    secret: jwks.expressJwtSecret({
-        cache: true,
-        rateLimit: true,
-        jwksRequestsPerMinute: 5,
-        jwksUri: "https://ua-ecomm.auth0.com/.well-known/jwks.json"
-    }),
-    audience: "https://nexus.ua.dev",
-    issuer: "https://ua-ecomm.auth0.com/",
-    algorithms: ["RS256"]
-});
 
 const requireScope = (expectedScope: string) => {
     return (req: Request, res: Response, next: NextFunction) => {
@@ -41,7 +30,20 @@ const requireScope = (expectedScope: string) => {
  * @param path
  * @param scope
  */
-export const protectRoute = (router: IRouter, path: string, scope?: string) => {
+export const protectRoute = (router: IRouter, config: NexusModuleConfig, path: string, scope?: string) => {
+
+    const jwtCheck = jwt({
+        secret: jwks.expressJwtSecret({
+            cache: true,
+            rateLimit: true,
+            jwksRequestsPerMinute: 5,
+            jwksUri: config.authentication.auth0.jwksUri 
+        }),
+        audience: config.authentication.auth0.audience,
+        issuer: config.authentication.auth0.issuer,
+        algorithms: config.algorithms
+    });
+
     router.use(path, jwtCheck);
     if (scope) {
         router.use(path, requireScope(scope));

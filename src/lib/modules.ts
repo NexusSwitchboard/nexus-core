@@ -25,6 +25,7 @@ class ModuleManager {
     protected app: Application;
     protected subRouter: IRouter;
     protected activeModules: NexusModule[];
+    protected rawConfig: NexusModuleConfig;
 
     constructor() {
         this.app = null;
@@ -39,6 +40,7 @@ class ModuleManager {
 
     public loadConfiguredModules(config: Record<string, any>) {
         try {
+            this.rawConfig = config;
             const mods = config.modules;
             if (!mods) {
                 logger("It looks like there were no modules configured.  That seems....wrong.");
@@ -146,7 +148,7 @@ class ModuleManager {
                         moduleRouter[def.method](def.path, def.handler);
                     }
                     if (def.protected === true || def.protected === undefined) {
-                        protectRoute(moduleRouter, def.path);
+                        protectRoute(moduleRouter, this.rawConfig, def.path);
                     }
                 } else {
                     throw new Error("Attempting to create a route using an illegal method");

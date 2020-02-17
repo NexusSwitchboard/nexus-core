@@ -51,7 +51,7 @@ export const addNexusToExpressApp = (app: Application, configPath: string = unde
             app.set("package", JSON.parse(pkgContentsStr));
 
             //////////////  SETUP FOUNDATION API
-            protectRoute(mainRouter, "/api", "admin");
+            protectRoute(mainRouter, nexusConfigOb, "/api", "admin");
             mainRouter.use("/api", apiRouter);
 
             app.use(nexusConfigOb.rootUri || "/nexus", mainRouter);

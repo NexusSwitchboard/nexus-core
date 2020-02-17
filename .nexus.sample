@@ -1,4 +1,12 @@
 {
+  "rootUri":"",
+  "authentication": {
+    "auth0": {
+      "domain": "",
+      "audience": "",
+      "issuer":"",
+      "jwksUri": ""
+    },
   "connections": [
     {
       "name": "nexus-conn-slack"
