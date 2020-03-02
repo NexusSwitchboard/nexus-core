@@ -1,7 +1,7 @@
 import jwt from "express-jwt";
 import {IRouter, Request, Response, NextFunction} from "express";
 import jwks from "jwks-rsa";
-import { NexusModuleConfig } from "@nexus-switchboard/nexus-extend";
+import { ModuleConfig } from "@nexus-switchboard/nexus-extend";
 
 /**
  * This  adds the "user" field to the Request object so the linter will not complain about an unknown prop.
@@ -27,10 +27,11 @@ const requireScope = (expectedScope: string) => {
  * request.  Optionally, you can request that there is a given scope associated with that token.  Note
  * that you can pass in an Express Application or a Router instance since both are derived from IRouter.
  * @param router
+ * @param config
  * @param path
  * @param scope
  */
-export const protectRoute = (router: IRouter, config: NexusModuleConfig, path: string, scope?: string) => {
+export const protectRoute = (router: IRouter, config: ModuleConfig, path: string, scope?: string) => {
 
     const jwtCheck = jwt({
         secret: jwks.expressJwtSecret({
@@ -41,7 +42,7 @@ export const protectRoute = (router: IRouter, config: NexusModuleConfig, path: s
         }),
         audience: config.authentication.auth0.audience,
         issuer: config.authentication.auth0.issuer,
-        algorithms: config.algorithms
+        algorithms: config.authentication.auth0.algorithms
     });
 
     router.use(path, jwtCheck);

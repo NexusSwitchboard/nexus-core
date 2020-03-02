@@ -22,7 +22,7 @@ test("Test module created and initialized correctly.", () => {
     expect(mod).toHaveProperty("name");
     expect(mod.name).toBe("test");
 
-    const config = mod.getActiveConfig();
+    const config = mod.getActiveModuleConfig();
     expect(config).toBeDefined();
     expect(config).toHaveProperty("modConfig1");
     expect(config.modConfig1).toBe("modConfig1-Override");

@@ -1,6 +1,6 @@
 import _ from "lodash";
 import express from "express";
-import {Job, NexusModule, NexusModuleConfig} from "@nexus-switchboard/nexus-extend";
+import {Job, NexusModule, ModuleConfig} from "@nexus-switchboard/nexus-extend";
 import {mainLogger} from "..";
 import {listRoutes} from "../lib/routes";
 import getModuleManager from "../lib/modules";
@@ -11,6 +11,9 @@ apiRouter.use(express.json());
 apiRouter.use(express.urlencoded({extended: false}));
 apiRouter.use(cookieParser());
 
+/***
+ * Returns the package information for the nexus-based app.
+ */
 apiRouter.get("/version", async (req, res) => {
     const pkg = req.app.get("package");
     if (pkg) {
@@ -19,6 +22,9 @@ apiRouter.get("/version", async (req, res) => {
     return res.json({message: "Package not found"}).status(404);
 });
 
+/**
+ * Returns module definitions for all registered modules for this nexus-based app
+ */
 apiRouter.get("/modules", async (req, res) => {
 
     const mods = getModuleManager().getRunningModules();
@@ -29,8 +35,8 @@ apiRouter.get("/modules", async (req, res) => {
                 jobs: m.getActiveJobs().map((j: Job) => {
                     return j.asJson();
                 }),
-                router: listRoutes(m.getActiveRoutes()),
-                config: scrubConfig(m.getActiveConfig()),
+                routes: listRoutes(m.getActiveSubApp()),
+                config: scrubConfig(m.getActiveModuleConfig()),
             };
         });
         return res.json(modulesRes).status(200);
@@ -38,6 +44,10 @@ apiRouter.get("/modules", async (req, res) => {
     return res.json({message: "No running modules found"}).status(404);
 });
 
+/**
+ * Executes a job for a given module based on type.  This assumes that job config
+ * object is in the payload as a NexusJobOptions type.
+ */
 apiRouter.post("/modules/:moduleName/jobs/:jobName", async (req, res) => {
 
     const foundMod = getModuleManager().getModuleByName(req.params.moduleName);
@@ -85,12 +95,12 @@ apiRouter.post("/modules/:moduleName/jobs/:jobName", async (req, res) => {
  * that were loaded from environment variables replaced with "******"
  * @param config
  */
-const scrubConfig = (config: NexusModuleConfig) => {
+const scrubConfig = (config: ModuleConfig) => {
     if (!config) {
         return {};
     }
 
-    const scrubbedConfig = _.cloneDeep<NexusModuleConfig>(config);
+    const scrubbedConfig = _.cloneDeep<ModuleConfig>(config);
     if (scrubbedConfig.secrets) {
         for (const name of config.secrets) {
             if (name in scrubbedConfig) {

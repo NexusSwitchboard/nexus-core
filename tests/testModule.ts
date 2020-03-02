@@ -1,9 +1,9 @@
 import {
-    ConnectionRequestDefinition,
+    ConnectionRequest,
     Job,
     NexusJobDefinition,
     NexusModule,
-    NexusModuleConfig
+    ModuleConfig
 } from "@nexus-switchboard/nexus-extend";
 import {Router} from "express";
 import {TestConnection} from "./testConnection";
@@ -13,14 +13,14 @@ export class TestModule extends NexusModule {
 
     public name = "test";
 
-    public loadConfig(overrides?: NexusModuleConfig): NexusModuleConfig {
+    public loadConfig(overrides?: ModuleConfig): ModuleConfig {
         return Object.assign({}, {
             modConfig1: "modConfig1",
             modConfig2: "modConfig2"
         }, overrides);
     }
 
-    public loadConnections(_config: NexusModuleConfig, _router: Router): ConnectionRequestDefinition[] {
+    public loadConnections(_config: ModuleConfig, _router: Router): ConnectionRequest[] {
         return [{
             name: "testConnection",
             config: {
