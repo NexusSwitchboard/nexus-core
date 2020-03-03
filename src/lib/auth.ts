@@ -38,11 +38,11 @@ export const protectRoute = (router: IRouter, config: ModuleConfig, path: string
             cache: true,
             rateLimit: true,
             jwksRequestsPerMinute: 5,
-            jwksUri: config.authentication.auth0.jwksUri 
+            jwksUri: config.global.authentication.auth0.jwksUri
         }),
-        audience: config.authentication.auth0.audience,
-        issuer: config.authentication.auth0.issuer,
-        algorithms: config.authentication.auth0.algorithms
+        audience: config.global.authentication.auth0.audience,
+        issuer: config.global.authentication.auth0.issuer,
+        algorithms: config.global.authentication.auth0.algorithms
     });
 
     router.use(path, jwtCheck);

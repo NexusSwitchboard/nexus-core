@@ -1,7 +1,7 @@
-import {Application, IRouter} from "express";
-import {Connection, ConnectionConfig, ConnectionFactory} from "@nexus-switchboard/nexus-extend";
+import { Application, IRouter } from "express";
+import { Connection, ConnectionConfig, ConnectionFactory, GlobalConfig, INexusDefinition } from "@nexus-switchboard/nexus-extend";
 import path from "path";
-import {mainLogger} from "..";
+import { mainLogger } from "..";
 import assert from "assert";
 
 export interface IConnectionDefinition {
@@ -34,25 +34,28 @@ const PROJECT_ROOT = path.resolve(__dirname, "..");
 export class ConnectionManager {
     protected app: Application;
     protected subRouter: IRouter;
+    protected _globalConfig: GlobalConfig;
     protected connections: Record<ConnectionName, RegisteredConnection>;
 
     constructor() {
         this.connections = {};
     }
 
-    public initialize(config: Record<string, any>, app: Application, subRouter?: IRouter) {
+    get globalConfig() {
+        return this._globalConfig;
+    }
+
+    public initialize(config: INexusDefinition, app: Application, subRouter?: IRouter) {
         this.subRouter = subRouter || app;
         this.app = app;
+
+        this._globalConfig = config.global;
 
         if (!config.connections) {
             mainLogger("There are appear to be no configured connections which is probably wrong.");
         } else {
-            for (const name of Object.keys(config.connections)) {
-                const conn = config.connections[name];
-                this.addDefinition(conn);
-            }
+            config.connections.forEach((conn) => this.addDefinition(conn) );
         }
-
     }
 
     public addDefinition(def: IConnectionDefinition): RegisteredConnection {
@@ -67,7 +70,7 @@ export class ConnectionManager {
         }
 
         try {
-            const absolutePathToConn = require.resolve(connPath, {paths: require.main.paths});
+            const absolutePathToConn = require.resolve(connPath, { paths: require.main.paths });
             if (absolutePathToConn) {
                 const factory = require(absolutePathToConn).default;
                 this.connections[def.name] = {
@@ -88,9 +91,11 @@ export class ConnectionManager {
 
     public createConnection(name: string, config: ConnectionConfig): Connection {
         if (name in this.connections) {
-            return this.connections[name].factory(config);
+            return this.connections[name].factory(config, this.globalConfig);
         } else {
-            mainLogger("Unable to find a registered connection with the name " + name);
+            mainLogger(`Unable to find a registered connection with the name ${name}.  Make sure it's 
+            listed in the .nexus file for the app`);
+
             return undefined;
         }
     }

@@ -9,7 +9,9 @@ import {
     INexusModuleDefinition,
     NexusModule,
     ModuleConfig,
+    INexusDefinition
 } from "@nexus-switchboard/nexus-extend";
+
 import path from "path";
 import { protectRoute } from "./auth";
 import getConnectionManager from "./connections";
@@ -33,7 +35,7 @@ class ModuleManager {
     protected activeModules: NexusModule[];
 
     // This is the original configuration passed to the
-    protected rawConfig: ModuleConfig;
+    protected rawConfig: INexusDefinition;
 
     constructor() {
         this.app = null;
@@ -48,7 +50,7 @@ class ModuleManager {
      *          the app itself is used as the root.
      */
     public initialize(
-        config: Record<string, any>,
+        config: INexusDefinition,
         app: Application,
         subRouter?: IRouter
     ) {
@@ -65,7 +67,7 @@ class ModuleManager {
     /**
      * This will load all the modules in the given module map.  Module maps are keyed
      * on the module name (either the package name or folder name)
-     * @param moduleMap The map of module names to module configuration options.  
+     * @param moduleMap The map of module names to module configuration options.
      */
     public loadConfiguredModules(moduleMap: Record<string, INexusModuleDefinition>) {
         try {
@@ -90,11 +92,14 @@ class ModuleManager {
 
                 try {
                     const absolutePathToMod = require.resolve(modPath, {
-                        paths: require.main.paths,
+                        paths: require.main.paths
                     });
                     if (absolutePathToMod) {
                         const moduleInstance = require(absolutePathToMod)
                             .default;
+
+                        moduleInstance.globalConfig = this.rawConfig.global;
+
                         this.loadModuleFromDefinition(
                             moduleInstance,
                             modDefinition
@@ -136,7 +141,7 @@ class ModuleManager {
             config: undefined,
             connections: undefined,
             subApp: undefined,
-            jobs: undefined,
+            jobs: undefined
         };
 
         activeModule.config = this.loadSecretConfig(
@@ -150,7 +155,7 @@ class ModuleManager {
         //      in some cases because even if routes are not defined directly by the module, requested connections
         //      could use the router for their own purposes.
         activeModule.subApp = this.getSubAppFromRouteDefinitions(
-            mod.name,
+            mod,
             mod.loadRoutes(activeModule.config)
         );
 
@@ -198,11 +203,11 @@ class ModuleManager {
      * the route definitions given to populate it with routes.  Note
      * that the subapp could also be assigned routes by connections
      * that are being used by that module.
-     * @param moduleName
+     * @param mod The module object that was instantiated.
      * @param routeDefinitions
      */
     private getSubAppFromRouteDefinitions(
-        moduleName: string,
+        mod: NexusModule,
         routeDefinitions: IRouteDefinition[]
     ): Application {
         // Express has the notion of "sub-apps" which are both routers + event emitters that
@@ -231,7 +236,7 @@ class ModuleManager {
                 }
             });
 
-            this.subRouter.use(`/m/${moduleName}`, moduleExpressApp);
+            this.subRouter.use(mod.moduleRootPath, moduleExpressApp);
         }
         return moduleExpressApp;
     }
@@ -250,15 +255,10 @@ class ModuleManager {
             if (req.name in connectionMap) {
                 logger(
                     "Duplicate connection request found in nexus configuration: " +
-                        req.name
+                    req.name
                 );
             } else {
-                connectionMap[
-                    req.name
-                ] = getConnectionManager().createConnection(
-                    req.name,
-                    req.config
-                );
+                connectionMap[req.name] = getConnectionManager().createConnection(req.name, req.config);
             }
         });
         return connectionMap;
@@ -292,7 +292,7 @@ class ModuleManager {
                 } else {
                     throw new Error(
                         `Unable to replace a secret configuration with an environment ` +
-                            `variable: ${fullConfigName} (${name}})`
+                        `variable: ${fullConfigName} (${name}})`
                     );
                 }
             }

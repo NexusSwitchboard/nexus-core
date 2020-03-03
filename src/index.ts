@@ -1,16 +1,16 @@
-import cookieParser from "cookie-parser";
 import createDebug from "debug";
-import {config} from "dotenv";
-import express, {Application, Router} from "express";
+import { config } from "dotenv";
+import express, { Application, Router } from "express";
 
 import fs from "fs";
 import http from "http";
 import logger from "morgan";
 import path from "path";
 import apiRouter from "./api";
-import {protectRoute} from "./lib/auth";
+import { protectRoute } from "./lib/auth";
 import getConnectionManager from "./lib/connections";
 import getModuleManager from "./lib/modules";
+import { INexusDefinition } from "@nexus-switchboard/nexus-extend";
 
 export const mainLogger = createDebug("nexus:server");
 
@@ -34,14 +34,14 @@ export const addNexusToExpressApp = (app: Application, configPath: string = unde
 
         try {
             const nexusConfigStr = fs.readFileSync(pathToNexusConfig).toString();
-            const nexusConfigOb = JSON.parse(nexusConfigStr);
+            const nexusDefinition = JSON.parse(nexusConfigStr) as INexusDefinition;
 
             const mainRouter = Router();
 
             // IMPORTANT: Connections MUST be initialized first otherwise there will be no connections
             //      available to the modules that request them.
-            getConnectionManager().initialize(nexusConfigOb, app, mainRouter);
-            getModuleManager().initialize(nexusConfigOb, app, mainRouter);
+            getConnectionManager().initialize(nexusDefinition, app, mainRouter);
+            getModuleManager().initialize(nexusDefinition, app, mainRouter);
 
             /**
              * Store the package.json object in the app for future reference
@@ -51,10 +51,10 @@ export const addNexusToExpressApp = (app: Application, configPath: string = unde
             app.set("package", JSON.parse(pkgContentsStr));
 
             //////////////  SETUP FOUNDATION API
-            protectRoute(mainRouter, nexusConfigOb, "/api", "admin");
+            protectRoute(mainRouter, nexusDefinition, "/api", "admin");
             mainRouter.use("/api", apiRouter);
 
-            app.use(nexusConfigOb.rootUri || "/nexus", mainRouter);
+            app.use(nexusDefinition.global.nexusPath || "/nexus", mainRouter);
         } catch (e) {
             mainLogger("Failed to load Nexus into Express server: " + e.toString());
         }
@@ -68,7 +68,7 @@ export const addNexusToExpressApp = (app: Application, configPath: string = unde
 /**
  * Instatiates and starts a server to listen for Nexus traffic
  * based on configuration options made available in the .nexus file
- * 
+ *
  * @param port The port to listen for traffic on
  * @param configPath (optional) The path to the nexus config file.  If not given, it will look in the current working
  *          directory for a file called .nexus.

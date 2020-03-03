@@ -1,19 +1,10 @@
-import {Router} from "express";
+import { Application, Express } from "express";
+import listEndpoints from "express-list-endpoints";
 
 /**
  * For a given router, returns a list of route data
- * @param router
+ * @param app
  */
-export function listRoutes(router: Router) {
-    return router.stack
-        .filter((r) => (r.route && r.route.path))
-        .map((r, i) => {
-            return r.route.stack.map((type: any) => {
-                return {
-                    no: i,
-                    method: type.method.toUpperCase(),
-                    path: r.route.path
-                };
-            });
-        });
+export function listRoutes(app: Application) {
+    return listEndpoints(app as Express);
 }
