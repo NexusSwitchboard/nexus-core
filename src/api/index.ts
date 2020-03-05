@@ -1,8 +1,7 @@
 import _ from "lodash";
 import express from "express";
-import {Job, NexusModule, ModuleConfig} from "@nexus-switchboard/nexus-extend";
+import {Job, NexusModule, ModuleConfig, listRoutes} from "@nexus-switchboard/nexus-extend";
 import {mainLogger} from "..";
-import {listRoutes} from "../lib/routes";
 import getModuleManager from "../lib/modules";
 import cookieParser = require("cookie-parser");
 
