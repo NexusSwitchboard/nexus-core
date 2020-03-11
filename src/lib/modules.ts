@@ -147,7 +147,6 @@ class ModuleManager {
             jobs: undefined
         };
 
-        logger("here1");
         activeModule.config = this.loadSecretConfig(
             mod.name,
             mod.loadConfig(definition.config)
@@ -158,7 +157,6 @@ class ModuleManager {
         //      Also worth nothing that there is ALWAYS a router object associated with a module - this is necessary
         //      in some cases because even if routes are not defined directly by the module, requested connections
         //      could use the router for their own purposes.
-        logger("here2");
         activeModule.subApp = this.getSubAppFromRouteDefinitions(
             mod,
             mod.loadRoutes(activeModule.config)
@@ -167,20 +165,17 @@ class ModuleManager {
         //  **** JOBS
         //  Note: the module itself does the instantiation of the Job objects.  The module loader simply
         //  stores the created jobs for future reference.
-        logger("here3");
         activeModule.jobs = definition.jobs ? mod.loadJobs(definition.jobs) : [];
 
         //  **** CONNECTIONS
         // Note: The loader returns "requests" for connection.  The module loader then uses those requests
         //  to attempt to create instances of the connections using the connection manager factory method.
-        logger("here4");
         activeModule.connections = this.getConnectionMapFromRequests(
             mod.loadConnections(activeModule.config, activeModule.subApp)
         );
 
         // This insures that the module itself has information about the running instance of itself that
         //  has been created and managed by the nexus core.
-        logger("here5");
         mod.setActiveModuleData(activeModule);
 
         this.activeModules.push(mod);
@@ -223,23 +218,23 @@ class ModuleManager {
         //  if it was the main app to the module.
         const moduleExpressApp: Application = express();
         if (routeDefinitions) {
-            logger("herea");
+
             routeDefinitions.forEach((def) => {
-                logger("herea1");
+
                 if (def.method in moduleExpressApp) {
-                    logger("herea2");
+
                     if (def.bodyParser) {
-                        logger("herea3");
+
                         moduleExpressApp[def.method](
                             def.path,
                             def.bodyParser,
                             def.handler
                         );
                     } else {
-                        logger("herea4");
+
                         moduleExpressApp[def.method](def.path, def.handler);
                     }
-                    logger("herea5");
+
                     if (def.protected === true || def.protected === undefined) {
                         protectRoute(moduleExpressApp, this.rawConfig, def.path);
                     }
@@ -249,12 +244,12 @@ class ModuleManager {
                     );
                 }
             });
-            logger("herea6");
+
         }
 
         this.subRouter.use(mod.moduleRootPath, moduleExpressApp);
 
-        logger("herea7");
+
         return moduleExpressApp;
     }
 
