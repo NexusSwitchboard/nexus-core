@@ -11,6 +11,7 @@ import { protectRoute } from "./lib/auth";
 import getConnectionManager from "./lib/connections";
 import getModuleManager from "./lib/modules";
 import { INexusDefinition } from "@nexus-switchboard/nexus-extend";
+import loadNexusDefinition from "./lib/config";
 
 export const mainLogger = createDebug("nexus:server");
 
@@ -29,13 +30,10 @@ config();
  */
 export const addNexusToExpressApp = (app: Application, configPath: string = undefined) => {
     // Load the nexus config file
-    const pathToNexusConfig = configPath || "./.nexus";
-    if (fs.existsSync(pathToNexusConfig)) {
+    const nexusDefinition = loadNexusDefinition(configPath);
+    if (nexusDefinition) {
 
         try {
-            const nexusConfigStr = fs.readFileSync(pathToNexusConfig).toString();
-            const nexusDefinition = JSON.parse(nexusConfigStr) as INexusDefinition;
-
             const mainRouter = Router();
 
             // IMPORTANT: Connections MUST be initialized first otherwise there will be no connections
