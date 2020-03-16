@@ -3,6 +3,7 @@ import { Connection, ConnectionConfig, ConnectionFactory, GlobalConfig, INexusDe
 import path from "path";
 import { mainLogger } from "..";
 import assert from "assert";
+import shelljs from "shelljs";
 
 export interface IConnectionDefinition {
 
@@ -28,8 +29,6 @@ type RegisteredConnection = {
 };
 
 type ConnectionName = string;
-
-const PROJECT_ROOT = path.resolve(__dirname, "..");
 
 export class ConnectionManager {
     protected app: Application;
@@ -64,7 +63,10 @@ export class ConnectionManager {
 
         let connPath: string = def.name;
         if (def.path) {
-            connPath = def.path ? path.join(PROJECT_ROOT, def.path, def.name) : def.name;
+            const cwd = shelljs.pwd().stdout;
+            connPath = def.path
+                ? path.join(cwd, def.path, def.name)
+                : def.name;
         } else if (def.scope) {
             connPath = `@${def.scope}/${def.name}`;
         }
@@ -93,9 +95,7 @@ export class ConnectionManager {
         if (name in this.connections) {
             return this.connections[name].factory(config, this.globalConfig);
         } else {
-            mainLogger(`Unable to find a registered connection with the name ${name}.  Make sure it's 
-            listed in the .nexus file for the app`);
-
+            mainLogger(`Unable to find a registered connection with the name ${name}.`);
             return undefined;
         }
     }
