@@ -249,7 +249,6 @@ class ModuleManager {
 
         this.subRouter.use(mod.moduleRootPath, moduleExpressApp);
 
-
         return moduleExpressApp;
     }
 
