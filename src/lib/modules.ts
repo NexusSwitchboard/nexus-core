@@ -174,9 +174,9 @@ class ModuleManager {
             mod.loadConnections(activeModule.config, activeModule.subApp)
         );
 
-        // This insures that the module itself has information about the running instance of itself that
-        //  has been created and managed by the nexus core.
-        mod.setActiveModuleData(activeModule);
+        // Now initialize the module with all the jobs, connections, config and routes
+        //  that were setup here.
+        mod.initialize(activeModule);
 
         this.activeModules.push(mod);
 
