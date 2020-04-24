@@ -303,7 +303,7 @@ class ModuleManager {
                 } else {
                     throw new Error(
                         `Unable to replace a secret configuration with an environment ` +
-                        `variable: ${fullConfigName} (${name}})`
+                        `variable: ${fullConfigName} (${name})`
                     );
                 }
             }

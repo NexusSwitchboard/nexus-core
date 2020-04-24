@@ -39,9 +39,7 @@ export default (specifiedPath?: string) => {
     const cwd = process.cwd();
     const configSearchPaths = [
         join(cwd, ".nexus"),
-        join(cwd, ".nexus.dev"),
-        join(cwd, ".nexus.int"),
-        join(cwd, ".nexus.prod")
+        process.env.NODE_ENV === "production" ? join(cwd, ".nexus.prod") : join(cwd, ".nexus.dev")
     ];
 
     if (specifiedPath) {
