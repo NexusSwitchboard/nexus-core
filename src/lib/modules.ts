@@ -50,7 +50,7 @@ class ModuleManager {
      * @param subRouter This is the root of all other routes, if given. Otherwise
      *          the app itself is used as the root.
      */
-    public initialize(
+    public async initialize(
         config: INexusDefinition,
         app: Application,
         subRouter?: IRouter
@@ -61,7 +61,7 @@ class ModuleManager {
         this.rawConfig = config;
 
         if (config && config.modules) {
-            this.loadConfiguredModules(config.modules);
+            await this.loadConfiguredModules(config.modules);
         }
     }
 
@@ -70,7 +70,7 @@ class ModuleManager {
      * on the module name (either the package name or folder name)
      * @param moduleMap The map of module names to module configuration options.
      */
-    public loadConfiguredModules(moduleMap: Record<string, INexusModuleDefinition>) {
+    public async loadConfiguredModules(moduleMap: Record<string, INexusModuleDefinition>) {
         try {
             for (const name of Object.keys(moduleMap)) {
                 const modDefinition = moduleMap[name];
@@ -103,7 +103,7 @@ class ModuleManager {
 
                         moduleInstance.globalConfig = this.rawConfig.global;
 
-                        this.loadModuleFromDefinition(
+                        await this.loadModuleFromDefinition(
                             moduleInstance,
                             modDefinition
                         );
@@ -133,7 +133,7 @@ class ModuleManager {
      * @param mod The module object that was declared and instantiated by the module code
      * @param definition The definition of the module as specified by the top-level nexus config file.
      */
-    public loadModuleFromDefinition(
+    public async loadModuleFromDefinition(
         mod: NexusModule,
         definition: INexusModuleDefinition
     ) {
@@ -178,9 +178,13 @@ class ModuleManager {
         //  that were setup here.
         mod.initialize(activeModule);
 
-        this.activeModules.push(mod);
+        if (await mod.validate(activeModule)) {
+            this.activeModules.push(mod);
+            logger("Loaded module " + mod.name);
+        } else {
+            logger("Failed to load module " + mod.name + " due to an error during the validation phase.")
+        }
 
-        logger("Loaded module " + mod.name);
     }
 
     /**
