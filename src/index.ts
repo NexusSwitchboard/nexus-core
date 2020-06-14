@@ -1,21 +1,25 @@
 import createDebug from "debug";
-import { config } from "dotenv";
-import express, { Application, Router } from "express";
+import {config} from "dotenv";
+import express, {Application, Router} from "express";
 
 import fs from "fs";
 import http from "http";
 import logger from "morgan";
 import path from "path";
 import apiRouter from "./api";
-import { protectRoute } from "./lib/auth";
+import {protectRoute} from "./lib/auth";
 import getConnectionManager from "./lib/connections";
 import getModuleManager from "./lib/modules";
-import { INexusDefinition } from "@nexus-switchboard/nexus-extend";
+import {INexusDefinition} from "@nexus-switchboard/nexus-extend";
 import loadNexusDefinition from "./lib/config";
+import _ from "lodash";
 
 export const mainLogger = createDebug("nexus:server");
+export type NexusDefinitionFunc = () => INexusDefinition;
 
 config();
+
+export {loadNexusDefinition};
 
 /**
  * If you already have an Express app created and want to simply
@@ -25,12 +29,20 @@ config();
  * to have access to the raw body.
  *
  * @param app The application to add Nexus to
- * @param configPath (optional) The path to the nexus config file.  If not given, it will look in the current working
- *          directory for a file called .nexus.
+ * @param config (optional) This can be either a path to a nexus file, a nexus definition object or a function that
+ *          returns a nexus definition object.
  */
-export const addNexusToExpressApp = (app: Application, configPath: string = undefined) => {
+export const addNexusToExpressApp = (app: Application, config: string | INexusDefinition | NexusDefinitionFunc = undefined) => {
     // Load the nexus config file
-    const nexusDefinition = loadNexusDefinition(configPath);
+    let nexusDefinition: INexusDefinition;
+    if (!config || _.isString(config)) {
+        nexusDefinition = loadNexusDefinition(config as string);
+    } else if (_.isFunction(config)) {
+        nexusDefinition = config();
+    } else if (_.isPlainObject(config)) {
+        nexusDefinition = config;
+    }
+
     if (nexusDefinition) {
 
         try {
