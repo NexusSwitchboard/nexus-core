@@ -29,18 +29,19 @@ export {loadNexusDefinition};
  * to have access to the raw body.
  *
  * @param app The application to add Nexus to
- * @param config (optional) This can be either a path to a nexus file, a nexus definition object or a function that
+ * @param cfg (optional) This can be either a path to a nexus file, a nexus definition object or a function that
  *          returns a nexus definition object.
  */
-export const addNexusToExpressApp = (app: Application, config: string | INexusDefinition | NexusDefinitionFunc = undefined) => {
+export const addNexusToExpressApp = (app: Application,
+                                     cfg: string | INexusDefinition | NexusDefinitionFunc = undefined) => {
     // Load the nexus config file
     let nexusDefinition: INexusDefinition;
-    if (!config || _.isString(config)) {
-        nexusDefinition = loadNexusDefinition(config as string);
-    } else if (_.isFunction(config)) {
-        nexusDefinition = config();
-    } else if (_.isPlainObject(config)) {
-        nexusDefinition = config;
+    if (!cfg || _.isString(cfg)) {
+        nexusDefinition = loadNexusDefinition(cfg as string);
+    } else if (_.isFunction(cfg)) {
+        nexusDefinition = cfg();
+    } else if (_.isPlainObject(cfg)) {
+        nexusDefinition = cfg;
     }
 
     if (nexusDefinition) {
