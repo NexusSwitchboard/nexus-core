@@ -205,7 +205,7 @@ class ModuleManager {
             this.activeModules.push(mod);
             logger("Loaded module " + mod.name);
         } else {
-            logger("Failed to load module " + mod.name + " due to an error during the validation phase.")
+            logger("Failed to load module " + mod.name + " due to an error during the validation phase.");
         }
 
     }
@@ -318,7 +318,7 @@ class ModuleManager {
     ): ModuleConfig {
         const configCopy = _.cloneDeep<ModuleConfig>(configOb);
 
-        if ('secrets' in configOb) {
+        if ("secrets" in configOb) {
             //
             // If there's a secrets section, then try to load all of these
             //  from the environment directly.  It assumed that the environment
