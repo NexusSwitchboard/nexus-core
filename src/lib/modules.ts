@@ -44,8 +44,9 @@ class ModuleManager {
 
     /**
      * Loads all modules defined in the given config (which is the .nexus
-     * config file in POJO form.
-     * @param config The .nexus config file
+     * config file in POJO form).  Note that will iterate over the configured modules
+     * and use the module specific config to initialize them as well.
+     * @param config The config object
      * @param app The application that is hosting this Nexus instance
      * @param subRouter This is the root of all other routes, if given. Otherwise
      *          the app itself is used as the root.
@@ -82,27 +83,43 @@ class ModuleManager {
                     continue;
                 }
 
+                // Use the module configuration information to dynamically import
+                //  the module into this module.  The name of the module is also the key used
+                //  to identify that this module should be included.
                 let modPath: string = name;
                 if (modDefinition.path) {
+                    // A path to the module was given meaning that it is not a published package. Instead it's a
+                    //  folder that exists on disk (and likely relative to the top-level project).
                     const cwd = shelljs.pwd().stdout;
                     modPath = modDefinition.path
                         ? path.join(cwd, modDefinition.path, name)
                         : name;
                 } else if (modDefinition.scope) {
+                    // This is a published package but one that lives within a package scope.  We
+                    //  prefix the name with the @scope syntax.
                     modPath = `@${modDefinition.scope}/${name}`;
                 }
 
                 try {
                     logger(`Searching for module ${name} in ${modPath}`);
+
+                    // use the resolver in the require package to resolve the location of the package. If it's
+                    //  a local package, this will be the absolute path to the specified folder.  If it's a published
+                    //  package then this should resolve to a folder within node_modules.
                     const absolutePathToMod = require.resolve(modPath, {
                         paths: require.main.paths
                     });
                     if (absolutePathToMod) {
-                        const moduleInstance = require(absolutePathToMod)
-                            .default;
 
+                        // take the default export and assume that it is the module instance (as it should be).
+                        const moduleInstance = require(absolutePathToMod).default;
+
+                        // Store global config information within the module for future reference.
                         moduleInstance.globalConfig = this.rawConfig.global;
 
+                        // Now do the full initialization of the module.  This will load and initialize the
+                        // module-specific configuration, the special routes, the jobs  as well as the connections
+                        // required for this module.
                         await this.loadModuleFromDefinition(
                             moduleInstance,
                             modDefinition
@@ -147,6 +164,12 @@ class ModuleManager {
             jobs: undefined
         };
 
+        // This will do the following:
+        //  1. Start with the module configuration specified in the module definition
+        //  2. Call a module method that gives it the chance to alter the configuration in whatever way it sees fit.
+        //      Note: this will return a copy of the configuration.
+        //  3. Populate the secrets in the config (anything under the 'secrets' property) with environment variable
+        //      values.
         activeModule.config = this.loadSecretConfig(
             mod.name,
             mod.loadConfig(definition.config)
@@ -280,8 +303,8 @@ class ModuleManager {
     }
 
     /**
-     * Scans the given config object looking for "__secret__" values and trying to replace them with the
-     * values stored in secrets returning a copy of the original config object once complete.
+     * Scans the 'secrets' property of the given config ob and attempts to load their value from
+     * the environment.
      * The secrets are expected to be stored in environment variables with the form: <MODULE_NAME>_<CONFIG_NAME>.
      * to the given config object.  But the config object returned will hold the value in the original
      * name (not the module-prefixed).
@@ -294,24 +317,30 @@ class ModuleManager {
         configOb: ModuleConfig
     ): ModuleConfig {
         const configCopy = _.cloneDeep<ModuleConfig>(configOb);
-        configCopy.secrets = [];
-        Object.keys(configCopy).forEach((name: string) => {
-            if (
-                configCopy[name] === SECRET_VAL ||
-                configCopy[name] === ENV_VAL
-            ) {
-                const fullConfigName = `${moduleName.toUpperCase()}_${name}`;
+
+        if ('secrets' in configOb) {
+            //
+            // If there's a secrets section, then try to load all of these
+            //  from the environment directly.  It assumed that the environment
+            //  version is prefixed with an all uppercase module name followed by
+            //  an underscore.  So for example:
+            //      hostName => MYMODULE_hostName
+            //
+            //  This reduces the chances of collision in the environment namespace.
+            //
+            Object.keys(configOb.secrets).forEach((key: string) => {
+                const fullConfigName = `${moduleName.toUpperCase()}_${key}`;
                 if (process.env.hasOwnProperty(fullConfigName)) {
-                    configCopy[name] = process.env[fullConfigName];
-                    configCopy.secrets.push(name);
+                    configCopy.secrets[key] = process.env[fullConfigName];
                 } else {
                     throw new Error(
                         `Unable to replace a secret configuration with an environment ` +
-                        `variable: ${fullConfigName} (${name})`
+                        `variable: ${fullConfigName} (${key})`
                     );
                 }
-            }
-        });
+            });
+        }
+
         return configCopy;
     }
 }
