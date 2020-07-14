@@ -1,17 +1,16 @@
 import createDebug from "debug";
 import {config} from "dotenv";
-import express, {Application, Router} from "express";
+import {Application, Router} from "express";
 
 import fs from "fs";
-import http from "http";
-import logger from "morgan";
 import path from "path";
 import apiRouter from "./api";
 import {protectRoute} from "./lib/auth";
+
 import getConnectionManager from "./lib/connections";
 import getModuleManager from "./lib/modules";
 import {INexusDefinition} from "@nexus-switchboard/nexus-extend";
-import loadNexusDefinition from "./lib/config";
+import {loadNexusConfigFromFile} from "./lib/config";
 import _ from "lodash";
 
 export const mainLogger = createDebug("nexus:server");
@@ -19,7 +18,7 @@ export type NexusDefinitionFunc = () => INexusDefinition;
 
 config();
 
-export {loadNexusDefinition};
+export {loadNexusConfigFromFile};
 
 /**
  * If you already have an Express app created and want to simply
@@ -33,12 +32,10 @@ export {loadNexusDefinition};
  *          returns a nexus definition object.
  */
 export const addNexusToExpressApp = (app: Application,
-                                     cfg: string | INexusDefinition | NexusDefinitionFunc = undefined) => {
+                                     cfg: INexusDefinition | NexusDefinitionFunc = undefined) => {
     // Load the nexus config file
     let nexusDefinition: INexusDefinition;
-    if (!cfg || _.isString(cfg)) {
-        nexusDefinition = loadNexusDefinition(cfg as string);
-    } else if (_.isFunction(cfg)) {
+    if (_.isFunction(cfg)) {
         nexusDefinition = cfg();
     } else if (_.isPlainObject(cfg)) {
         nexusDefinition = cfg;
@@ -60,10 +57,10 @@ export const addNexusToExpressApp = (app: Application,
             const pathToPackageJson = path.resolve("package.json");
             const pkgContentsStr = fs.readFileSync(pathToPackageJson, "utf8");
             app.set("package", JSON.parse(pkgContentsStr));
-
+           
             //////////////  SETUP FOUNDATION API
-            protectRoute(mainRouter, nexusDefinition, "/api", "admin");
-            mainRouter.use("/api", apiRouter);
+           protectRoute(mainRouter, nexusDefinition, "/api", "admin");
+           mainRouter.use("/api", apiRouter);
 
             app.use(nexusDefinition.global.nexusPath || "/nexus", mainRouter);
         } catch (e) {
@@ -71,29 +68,6 @@ export const addNexusToExpressApp = (app: Application,
         }
 
     } else {
-        mainLogger("Unable to find the .nexus config file");
-        throw new Error("Unable to find the .nexus config file");
+        throw new Error("Nexus definition does not appear to be valid");
     }
-};
-
-/**
- * Instatiates and starts a server to listen for Nexus traffic
- * based on configuration options made available in the .nexus file
- *
- * @param port The port to listen for traffic on
- * @param configPath (optional) The path to the nexus config file.  If not given, it will look in the current working
- *          directory for a file called .nexus.
- */
-export const startNexusServer = (port: string, configPath: string = undefined) => {
-
-    const app = express();
-
-    app.set("port", port);
-    const server = http.createServer(app);
-    server.listen(port);
-    app.use(logger("nexus:express"));
-
-    addNexusToExpressApp(app, configPath);
-
-    return app;
 };
