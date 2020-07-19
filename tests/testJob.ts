@@ -1,4 +1,4 @@
-import {Job} from "@nexus-switchboard/nexus-extend";
+import {Job} from "..";
 import moduleInstance from "./testModule";
 
 export class TestJob extends Job {

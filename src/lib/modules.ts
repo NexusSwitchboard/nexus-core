@@ -4,15 +4,15 @@ import shelljs from "shelljs";
 
 import express, { Application, Router, IRouter } from "express";
 import {
-    ConnectionMap,
     ConnectionRequest,
+    ConnectionMap,
     INexusActiveModule,
     IRouteDefinition,
-    INexusModuleDefinition,
     NexusModule,
     ModuleConfig,
+    INexusModuleDefinition,
     INexusDefinition
-} from "@nexus-switchboard/nexus-extend";
+} from "..";
 
 import path from "path";
 import { protectRoute } from "./auth";
@@ -214,7 +214,7 @@ class ModuleManager {
      * Returns all the modules that were successfully initialized during the
      * initialization phase.
      */
-    public getRunningModules() {
+    public getRunningModules(): NexusModule[] {
         return this.activeModules;
     }
 

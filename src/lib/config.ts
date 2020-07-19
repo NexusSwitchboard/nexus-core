@@ -1,6 +1,6 @@
 import fs, { existsSync } from "fs";
 import { join } from "path";
-import { INexusDefinition, nestedAssign } from "@nexus-switchboard/nexus-extend";
+import { INexusDefinition, nestedAssign } from "..";
 import { mainLogger } from "../index";
 
 /**
@@ -44,4 +44,4 @@ export const loadNexusConfigFromFile = (configPath?: string): INexusDefinition =
     });
 
     return nestedAssign({}, ...configObjects);
-}
+};

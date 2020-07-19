@@ -1,4 +1,4 @@
-import {Connection, ConnectionConfig} from "@nexus-switchboard/nexus-extend";
+import {Connection, ConnectionConfig} from "..";
 
 export class TestConnection extends Connection {
     public name = "testConnection";

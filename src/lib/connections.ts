@@ -1,5 +1,5 @@
 import { Application, IRouter } from "express";
-import { Connection, ConnectionConfig, ConnectionFactory, GlobalConfig, INexusDefinition } from "@nexus-switchboard/nexus-extend";
+import { Connection, ConnectionConfig, ConnectionFactory, GlobalConfig, INexusDefinition } from "..";
 import path from "path";
 import { mainLogger } from "..";
 import assert from "assert";
