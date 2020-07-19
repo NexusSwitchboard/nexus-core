@@ -4,7 +4,8 @@ import {
     NexusJobDefinition,
     NexusModule,
     ModuleConfig
-} from "@nexus-switchboard/nexus-extend";
+} from "..";
+
 import {Router} from "express";
 import {TestConnection} from "./testConnection";
 import {TestJob} from "./testJob";

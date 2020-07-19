@@ -9,16 +9,63 @@ import {protectRoute} from "./lib/auth";
 
 import getConnectionManager from "./lib/connections";
 import getModuleManager from "./lib/modules";
-import {INexusDefinition} from "@nexus-switchboard/nexus-extend";
-import {loadNexusConfigFromFile} from "./lib/config";
+export {loadNexusConfigFromFile} from "./lib/config";
 import _ from "lodash";
+
+import {INexusDefinition} from "./extend";
+
+//// EXTENSION HELPERS
+
+export {
+    Connection,
+    ConnectionRequest,
+    ConnectionConfig,
+    ConnectionMap,
+    ConnectionFactory,
+    INexusConnectionDefinition
+} from "./extend/connections";
+
+export {
+    Job,
+    NexusJobDefinition,
+    NexusJobOptions,
+    NexusJobStatus
+} from "./extend/jobs";
+
+export {
+    NexusModule,
+    ModuleConfig,
+    IRouteDefinition,
+    INexusActiveModule,
+    INexusModuleDefinition,
+    IConfigGroupRule,
+    IConfigGroups,
+    ConfigType
+} from "./extend/modules";
+
+export {
+    findNestedProperty,
+    findProperty,
+    getNestedVal,
+    hasOwnProperties,
+    loadTemplate,
+    replaceAll,
+    listRoutes,
+    checkConfig,
+    nestedAssign
+} from "./extend/helpers";
+
+export {
+    GlobalConfig,
+    INexusDefinition
+} from "./extend";
+
+////
 
 export const mainLogger = createDebug("nexus:server");
 export type NexusDefinitionFunc = () => INexusDefinition;
 
 config();
-
-export {loadNexusConfigFromFile};
 
 /**
  * If you already have an Express app created and want to simply
@@ -59,8 +106,8 @@ export const addNexusToExpressApp = (app: Application,
             app.set("package", JSON.parse(pkgContentsStr));
            
             //////////////  SETUP FOUNDATION API
-           protectRoute(mainRouter, nexusDefinition, "/api", "admin");
-           mainRouter.use("/api", apiRouter);
+            protectRoute(mainRouter, nexusDefinition, "/api", "admin");
+            mainRouter.use("/api", apiRouter);
 
             app.use(nexusDefinition.global.nexusPath || "/nexus", mainRouter);
         } catch (e) {

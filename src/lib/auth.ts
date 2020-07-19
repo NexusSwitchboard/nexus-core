@@ -1,7 +1,7 @@
 import jwt from "express-jwt";
 import {IRouter, Request, Response, NextFunction} from "express";
 import jwks from "jwks-rsa";
-import { ModuleConfig } from "@nexus-switchboard/nexus-extend";
+import { ModuleConfig } from "..";
 
 /**
  * This  adds the "user" field to the Request object so the linter will not complain about an unknown prop.
