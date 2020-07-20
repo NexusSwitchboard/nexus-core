@@ -1,8 +1,9 @@
 import { Application, NextFunction, Request, Response } from "express";
-import { Connection, ConnectionMap, ConnectionRequest } from "./connections";
+import {Connection, ConnectionFactory, logger} from "./connections";
 import { Job, NexusJobDefinition } from "./jobs";
 import { NextHandleFunction } from "connect";
 import { GlobalConfig} from "./index";
+import {ConnectionConfig} from "..";
 
 /**
  * Modules
@@ -63,7 +64,7 @@ export interface INexusActiveModule {
     config: ModuleConfig;
     subApp?: Application;
     jobs?: Job[];
-    connections?: ConnectionMap;
+    connections?: Connection[];
 }
 
 /**
@@ -103,10 +104,6 @@ export abstract class NexusModule {
     //  there could be issues with integrations such as routes.
     public abstract name: string;
 
-    // This is the uri path afte the nexus root that holds all downstream module
-    //  routes.
-    protected _moduleRootPath: string;
-
     // This is the configuration data that is specified in the nexus definition file
     //  and made available to all modules during initialization.
     protected _globalConfig: GlobalConfig;
@@ -135,13 +132,8 @@ export abstract class NexusModule {
         return this.activeModule;
     }
 
-    public getActiveConnection(name: string): Connection {
-
-        if (name in this.activeModule.connections) {
-            return this.activeModule.connections[name];
-        }
-
-        return undefined;
+    public getActiveConnections(): Connection[] {
+        return this.activeModule.connections;
     }
 
     public getActiveModuleConfig(): ModuleConfig {
@@ -198,7 +190,7 @@ export abstract class NexusModule {
      * Most modules will use at least one connection.  This will allow the user to instantiate the connections
      *  and configure them using configuration that is specific to this module.
      */
-    public loadConnections(_config: ModuleConfig, _subApp: Application): ConnectionRequest[] {
+    public loadConnections(_config: ModuleConfig, _subApp: Application): Connection[] {
         return [];
     }
 
@@ -222,4 +214,28 @@ export abstract class NexusModule {
     public async validate(_active: INexusActiveModule): Promise<boolean> {
         return true;
     }
+
+    /**
+     * Loads a connection using a connection factory method and configuration.
+     * @param name The name of the connection being loaded
+     * @param factoryFunc The factory function that is exported by the connection package
+     * @param config The connection configuration.
+     */
+    protected loadConnection(name: string, factoryFunc: ConnectionFactory, config: ConnectionConfig) {
+        try {
+            logger(`Connection loading: ${name}`);
+            const conn = factoryFunc(config, this.globalConfig);
+            if (conn) {
+                logger(`Connection loaded: ${name}`);
+                return conn;
+            } else {
+                logger(`Connection failed to load: ${name}`);
+                return null;
+            }
+        } catch (e) {
+            logger(`Connected failed to load: ${name}: ${e.toString()}`);
+            return null;
+        }
+    }
+
 }

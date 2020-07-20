@@ -7,7 +7,6 @@ import path from "path";
 import apiRouter from "./api";
 import {protectRoute} from "./lib/auth";
 
-import getConnectionManager from "./lib/connections";
 import getModuleManager from "./lib/modules";
 export {loadNexusConfigFromFile} from "./lib/config";
 import _ from "lodash";
@@ -18,9 +17,7 @@ import {INexusDefinition} from "./extend";
 
 export {
     Connection,
-    ConnectionRequest,
     ConnectionConfig,
-    ConnectionMap,
     ConnectionFactory,
     INexusConnectionDefinition
 } from "./extend/connections";
@@ -93,9 +90,6 @@ export const addNexusToExpressApp = (app: Application,
         try {
             const mainRouter = Router();
 
-            // IMPORTANT: Connections MUST be initialized first otherwise there will be no connections
-            //      available to the modules that request them.
-            getConnectionManager().initialize(nexusDefinition, app, mainRouter);
             getModuleManager().initialize(nexusDefinition, app, mainRouter);
 
             /**

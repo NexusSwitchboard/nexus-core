@@ -8,6 +8,9 @@
  * disconnect may not be called depending on how the connection is being used.
  */
 import { GlobalConfig } from "./index";
+import createDebug from "debug";
+
+export const logger = createDebug("nexus:connections");
 
 export abstract class Connection {
     public name: string;
@@ -49,18 +52,3 @@ export interface INexusConnectionDefinition {
     path?: string;
     config?: ConnectionConfig;
 }
-
-/**
- * A connection request is returned by a module indicating the connection
- * that we want Nexus to instantiate along with the configuration options
- * to use during that initialization.
- */
-export type ConnectionRequest = {
-    name: string,
-    config: ConnectionConfig
-};
-
-/**
- * Hash to quickly find connection objects based on a name.
- */
-export type ConnectionMap = Record<string, Connection>;

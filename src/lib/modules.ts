@@ -4,8 +4,6 @@ import shelljs from "shelljs";
 
 import express, { Application, Router, IRouter } from "express";
 import {
-    ConnectionRequest,
-    ConnectionMap,
     INexusActiveModule,
     IRouteDefinition,
     NexusModule,
@@ -16,7 +14,6 @@ import {
 
 import path from "path";
 import { protectRoute } from "./auth";
-import getConnectionManager from "./connections";
 
 const logger = createDebug("nexus:moduleLoader");
 export const SECRET_VAL = "__secret__";
@@ -191,15 +188,13 @@ class ModuleManager {
         activeModule.jobs = definition.jobs ? mod.loadJobs(definition.jobs) : [];
 
         //  **** CONNECTIONS
-        // Note: The loader returns "requests" for connection.  The module loader then uses those requests
-        //  to attempt to create instances of the connections using the connection manager factory method.
-        activeModule.connections = this.getConnectionMapFromRequests(
-            mod.loadConnections(activeModule.config, activeModule.subApp)
-        );
+        // Note: Connection loading is handled by the module itself.  But it returns the instantiated connection
+        // objects to the base module class to store for future reference.
+        activeModule.connections = mod.loadConnections(activeModule.config, activeModule.subApp);
 
         // Now initialize the module with all the jobs, connections, config and routes
         //  that were setup here.
-        mod.initialize(activeModule);
+        await mod.initialize(activeModule);
 
         if (await mod.validate(activeModule)) {
             this.activeModules.push(mod);
@@ -277,29 +272,6 @@ class ModuleManager {
         this.subRouter.use(mod.moduleRootPath, moduleExpressApp);
 
         return moduleExpressApp;
-    }
-
-    /**
-     * This will create the connections requested by the .nexus file inside
-     * the "connections" property.  It will use the name and configuration (if any)
-     * during the initialization.
-     * @param connectionRequests
-     */
-    private getConnectionMapFromRequests(
-        connectionRequests: ConnectionRequest[]
-    ) {
-        const connectionMap: ConnectionMap = {};
-        connectionRequests.forEach((req) => {
-            if (req.name in connectionMap) {
-                logger(
-                    "Duplicate connection request found in nexus configuration: " +
-                    req.name
-                );
-            } else {
-                connectionMap[req.name] = getConnectionManager().createConnection(req.name, req.config);
-            }
-        });
-        return connectionMap;
     }
 
     /**
