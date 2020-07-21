@@ -1,5 +1,4 @@
 import { INexusModuleDefinition } from "./modules";
-import { INexusConnectionDefinition } from "./connections";
 
 export type GlobalConfig = {
     nexusPath: string,
@@ -17,8 +16,6 @@ export type GlobalConfig = {
 export interface INexusDefinition {
 
     global: GlobalConfig;
-
-    connections: INexusConnectionDefinition[];
 
     modules: {
         [index: string]: INexusModuleDefinition;

@@ -40,15 +40,3 @@ export type ConnectionFactory = (cfg: ConnectionConfig, globalCfg: GlobalConfig)
  * to have a config specified here instead of a nexus module's config.
  */
 export type ConnectionConfig = Record<string, any>;
-
-/**
- * This is the definition of a connection as specified in the top level
- * .nexus file.  Only connections specified here will be loadable by
- * any modules.
- */
-export interface INexusConnectionDefinition {
-    name: string;
-    scope?: string;
-    path?: string;
-    config?: ConnectionConfig;
-}

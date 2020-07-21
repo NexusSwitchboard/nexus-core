@@ -18,8 +18,7 @@ import {INexusDefinition} from "./extend";
 export {
     Connection,
     ConnectionConfig,
-    ConnectionFactory,
-    INexusConnectionDefinition
+    ConnectionFactory
 } from "./extend/connections";
 
 export {
